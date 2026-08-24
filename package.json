@@ -12,8 +12,8 @@
     "dev": "concurrently -k \"npm:dev:renderer\" \"wait-on tcp:5173 && npm:dev:electron\"",
     "build:renderer": "vite build",
     "build": "npm run build:renderer",
-    "dist": "npm run build && electron-builder --win",
-    "dist:dir": "npm run build && electron-builder --win --dir",
+    "dist": "npm run build && electron-builder --win --publish=never",
+    "dist:dir": "npm run build && electron-builder --win --dir --publish=never",
     "postinstall": "electron-builder install-app-deps"
   },
   "dependencies": {
@@ -41,6 +41,7 @@
     "productName": "Teens Fashion - Gestion",
     "copyright": "Teens Fashion by Di",
     "asar": true,
+    "publish": null,
     "files": [
       "electron/**/*",
       "dist/**/*",
