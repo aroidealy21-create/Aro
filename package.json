@@ -1,0 +1,75 @@
+{
+  "name": "teens-fashion-gestion",
+  "productName": "Teens Fashion - Gestion",
+  "version": "1.0.0",
+  "description": "Logiciel de gestion de stock et caisse (POS) pour Teens Fashion by Di / mikata.mg",
+  "author": "Teens Fashion by Di",
+  "main": "electron/main.js",
+  "private": true,
+  "scripts": {
+    "dev:renderer": "vite",
+    "dev:electron": "cross-env NODE_ENV=development electron .",
+    "dev": "concurrently -k \"npm:dev:renderer\" \"wait-on tcp:5173 && npm:dev:electron\"",
+    "build:renderer": "vite build",
+    "build": "npm run build:renderer",
+    "dist": "npm run build && electron-builder --win",
+    "dist:dir": "npm run build && electron-builder --win --dir",
+    "postinstall": "electron-builder install-app-deps"
+  },
+  "dependencies": {
+    "better-sqlite3": "^13.0.3",
+    "dayjs": "^1.11.13",
+    "express": "^4.21.0",
+    "multer": "^2.2.0",
+    "nanoid": "^3.3.7"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^6.1.0",
+    "concurrently": "^9.0.1",
+    "cross-env": "^7.0.3",
+    "electron": "^43.4.1",
+    "electron-builder": "^26.15.7",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^7.18.2",
+    "recharts": "^2.12.7",
+    "vite": "^8.2.2",
+    "wait-on": "^8.0.0"
+  },
+  "build": {
+    "appId": "mg.mikata.teensfashion.gestion",
+    "productName": "Teens Fashion - Gestion",
+    "copyright": "Teens Fashion by Di",
+    "asar": true,
+    "files": [
+      "electron/**/*",
+      "dist/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "electron/db/schema.sql",
+        "to": "schema.sql"
+      }
+    ],
+    "directories": {
+      "output": "release",
+      "buildResources": "public/icons"
+    },
+    "win": {
+      "target": [
+        { "target": "nsis", "arch": ["x64"] }
+      ],
+      "icon": "public/icons/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Teens Fashion - Gestion",
+      "language": "1036"
+    }
+  }
+}
