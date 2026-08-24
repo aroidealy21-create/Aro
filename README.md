@@ -12,12 +12,18 @@ internet n'est necessaire au quotidien.
 - **Reception de stock** : mise a jour rapide des quantites quand vous recevez de nouveaux
   articles. Cette page fonctionne aussi depuis une **tablette** connectee au Wi-Fi de la
   boutique (aucune installation sur la tablette, juste un navigateur).
-- **Caisse (POS)** : enregistrement des ventes en temps reel, panier, remise, plusieurs
-  moyens de paiement (especes, Mvola, Orange Money, Airtel Money, carte), rendu de monnaie,
-  ticket imprimable.
-- **Tableau de bord & Rapports** : chiffre d'affaires du jour / du mois / de l'annee,
-  evolution des ventes, articles les plus vendus / les moins vendus, repartition par
-  categorie et par moyen de paiement, export CSV.
+- **Caisse (POS)** : enregistrement des ventes en temps reel, panier, remise (montant ou
+  pourcentage), plusieurs moyens de paiement (especes, Mvola, Orange Money, Airtel Money,
+  carte, **achat en ligne**), rendu de monnaie, ticket imprimable.
+- **Historique des ventes** : recherche et filtre par date / moyen de paiement, detail d'une
+  vente, annulation (remet le stock a jour), reimpression de ticket.
+- **Tableau de bord & Rapports** : chiffre d'affaires **et benefices** (jour / semaine / mois /
+  annee), evolution du CA et du benefice, articles les plus vendus / les moins vendus (avec
+  benefice), ventes par heure de la journee, tailles qui se vendent le mieux, repartition
+  boutique vs vente en ligne, repartition par categorie et par moyen de paiement.
+- **Export comptable Excel (.xlsx)** : un classeur pret a l'emploi avec plusieurs feuilles
+  (Resume, Ventes, Detail articles, Produits, CA par jour, Paiements), directement
+  exploitable sans reformatage.
 - **Alertes de stock bas** et valeur totale du stock.
 - **Sauvegarde** de la base de donnees en un clic.
 - 100% hors-ligne, toutes les donnees restent sur votre ordinateur.

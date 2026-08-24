@@ -35,7 +35,7 @@ export default function Dashboard() {
         <div className="spinner" />
       ) : (
         <>
-          <div className="grid grid-4">
+          <div className="grid grid-5">
             <div className="stat-card">
               <div className="label">CA aujourd'hui</div>
               <div className="value">{formatMoney(summary.today.ca, settings.currency)}</div>
@@ -46,15 +46,20 @@ export default function Dashboard() {
                 </div>
               )}
             </div>
+            <div className="stat-card accent">
+              <div className="label">Benefice aujourd'hui</div>
+              <div className="value">{formatMoney(summary.today.benefice || 0, settings.currency)}</div>
+              <div className="subtitle">CA - cout des articles</div>
+            </div>
             <div className="stat-card">
               <div className="label">CA du mois</div>
               <div className="value">{formatMoney(summary.month.ca, settings.currency)}</div>
-              <div className="subtitle">{summary.month.nb_ventes} vente(s)</div>
+              <div className="subtitle">Benefice {formatMoney(summary.month.benefice || 0, settings.currency)}</div>
             </div>
             <div className="stat-card">
               <div className="label">CA de l'annee</div>
               <div className="value">{formatMoney(summary.year.ca, settings.currency)}</div>
-              <div className="subtitle">{summary.year.nb_ventes} vente(s)</div>
+              <div className="subtitle">Benefice {formatMoney(summary.year.benefice || 0, settings.currency)}</div>
             </div>
             <div className="stat-card">
               <div className="label">Valeur du stock</div>
@@ -75,7 +80,7 @@ export default function Dashboard() {
                     <XAxis dataKey="product_name" tick={{ fontSize: 11 }} />
                     <YAxis tick={{ fontSize: 11 }} />
                     <Tooltip formatter={(v) => [`${v} vendu(s)`, 'Quantite']} />
-                    <Bar dataKey="quantite_vendue" fill="#ff6b9b" radius={[6, 6, 0, 0]} isAnimationActive={false} />
+                    <Bar dataKey="quantite_vendue" fill="#111114" radius={[6, 6, 0, 0]} isAnimationActive={false} />
                   </BarChart>
                 </ResponsiveContainer>
               )}

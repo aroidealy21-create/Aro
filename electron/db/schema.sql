@@ -66,6 +66,7 @@ CREATE TABLE IF NOT EXISTS sale_items (
   size TEXT DEFAULT '',
   quantity INTEGER NOT NULL,
   unit_price REAL NOT NULL,
+  unit_cost REAL,
   subtotal REAL NOT NULL
 );
 

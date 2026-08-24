@@ -3,14 +3,8 @@ import { api, photoUrl, formatMoney } from '../lib/api';
 import { useToast } from '../lib/toast.jsx';
 import { useSettings } from '../lib/settingsContext.jsx';
 import { colorSwatch } from '../lib/colors';
-
-const PAYMENT_METHODS = [
-  { key: 'especes', label: 'Especes', icon: '\u{1F4B5}' },
-  { key: 'mvola', label: 'Mvola', icon: '\u{1F4F1}' },
-  { key: 'orange_money', label: 'Orange Money', icon: '\u{1F4F1}' },
-  { key: 'airtel_money', label: 'Airtel Money', icon: '\u{1F4F1}' },
-  { key: 'carte', label: 'Carte bancaire', icon: '\u{1F4B3}' }
-];
+import { PAYMENT_METHODS } from '../lib/payments';
+import Receipt from '../components/Receipt.jsx';
 
 export default function POS() {
   const [products, setProducts] = useState([]);
@@ -20,6 +14,7 @@ export default function POS() {
   const [cart, setCart] = useState([]);
   const [variantPicker, setVariantPicker] = useState(null); // product being picked
   const [discount, setDiscount] = useState(0);
+  const [discountType, setDiscountType] = useState('amount'); // 'amount' | 'percent'
   const [payment, setPayment] = useState('especes');
   const [amountReceived, setAmountReceived] = useState('');
   const [seller, setSeller] = useState('');
@@ -106,11 +101,15 @@ export default function POS() {
   function clearCart() {
     setCart([]);
     setDiscount(0);
+    setDiscountType('amount');
     setAmountReceived('');
   }
 
   const total = useMemo(() => cart.reduce((s, it) => s + it.unit_price * it.quantity, 0), [cart]);
-  const finalTotal = Math.max(0, total - (Number(discount) || 0));
+  const discountAmount = discountType === 'percent'
+    ? Math.round((total * (Number(discount) || 0)) / 100)
+    : Number(discount) || 0;
+  const finalTotal = Math.max(0, total - discountAmount);
   const change = payment === 'especes' && amountReceived ? Math.max(0, Number(amountReceived) - finalTotal) : null;
 
   async function validateSale() {
@@ -123,7 +122,7 @@ export default function POS() {
       const sale = await api.post('/sales', {
         items: cart.map((it) => ({ variant_id: it.variant_id, quantity: it.quantity, unit_price: it.unit_price })),
         payment_method: payment,
-        discount: Number(discount) || 0,
+        discount: discountAmount,
         amount_received: payment === 'especes' ? (amountReceived || finalTotal) : null,
         seller
       });
@@ -223,15 +222,39 @@ export default function POS() {
             </div>
             <div className="cart-total-row" style={{ alignItems: 'center' }}>
               <span>Remise</span>
-              <input
-                className="input"
-                type="number"
-                min="0"
-                style={{ width: 110, textAlign: 'right' }}
-                value={discount}
-                onChange={(e) => setDiscount(e.target.value)}
-              />
+              <div style={{ display: 'flex', gap: 6 }}>
+                <input
+                  className="input"
+                  type="number"
+                  min="0"
+                  style={{ width: 90, textAlign: 'right' }}
+                  value={discount}
+                  onChange={(e) => setDiscount(e.target.value)}
+                />
+                <div className="discount-type-toggle">
+                  <button
+                    type="button"
+                    className={discountType === 'amount' ? 'active' : ''}
+                    onClick={() => setDiscountType('amount')}
+                  >
+                    {settings.currency || 'Ar'}
+                  </button>
+                  <button
+                    type="button"
+                    className={discountType === 'percent' ? 'active' : ''}
+                    onClick={() => setDiscountType('percent')}
+                  >
+                    %
+                  </button>
+                </div>
+              </div>
             </div>
+            {discountAmount > 0 && (
+              <div className="cart-total-row" style={{ fontSize: 12.5, color: 'var(--ink-soft)' }}>
+                <span>Remise appliquee</span>
+                <span>-{formatMoney(discountAmount, settings.currency)}</span>
+              </div>
+            )}
             <div className="cart-total-row grand">
               <span>Total</span>
               <span>{formatMoney(finalTotal, settings.currency)}</span>
@@ -261,7 +284,7 @@ export default function POS() {
               <div className="cart-total-row"><span>Monnaie a rendre</span><strong>{formatMoney(change, settings.currency)}</strong></div>
             )}
 
-            <button className="btn wide" style={{ marginTop: 8 }} disabled={loading || cart.length === 0} onClick={validateSale}>
+            <button className="btn accent wide" style={{ marginTop: 8 }} disabled={loading || cart.length === 0} onClick={validateSale}>
               {loading ? 'Validation...' : `Encaisser ${formatMoney(finalTotal, settings.currency)}`}
             </button>
           </div>
@@ -308,46 +331,6 @@ export default function POS() {
           </div>
         </div>
       )}
-    </div>
-  );
-}
-
-function Receipt({ sale, settings }) {
-  return (
-    <div className="receipt">
-      <div className="center">
-        <strong>{settings.shop_name || 'Teens Fashion by Di'}</strong><br />
-        {settings.shop_address}<br />
-        {settings.shop_phone}
-      </div>
-      <hr />
-      <div>Ticket : {sale.ticket_number}</div>
-      <div>Date : {new Date(sale.created_at).toLocaleString('fr-FR')}</div>
-      {sale.seller && <div>Vendeur : {sale.seller}</div>}
-      <hr />
-      {sale.items.map((it) => (
-        <div key={it.id}>
-          <div>{it.product_name} {it.color} {it.size}</div>
-          <div className="row">
-            <span>{it.quantity} x {formatMoney(it.unit_price, settings.currency)}</span>
-            <span>{formatMoney(it.subtotal, settings.currency)}</span>
-          </div>
-        </div>
-      ))}
-      <hr />
-      {sale.discount > 0 && (
-        <div className="row"><span>Remise</span><span>-{formatMoney(sale.discount, settings.currency)}</span></div>
-      )}
-      <div className="row"><strong>TOTAL</strong><strong>{formatMoney(sale.total, settings.currency)}</strong></div>
-      <div className="row"><span>Paiement</span><span>{sale.payment_method}</span></div>
-      {sale.amount_received != null && (
-        <div className="row"><span>Recu</span><span>{formatMoney(sale.amount_received, settings.currency)}</span></div>
-      )}
-      {sale.change_given != null && (
-        <div className="row"><span>Monnaie</span><span>{formatMoney(sale.change_given, settings.currency)}</span></div>
-      )}
-      <hr />
-      <div className="center">{settings.receipt_footer || 'Merci de votre visite !'}</div>
     </div>
   );
 }

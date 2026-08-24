@@ -36,7 +36,7 @@ module.exports = function buildSalesRouter() {
             const product = db.prepare('SELECT name FROM products WHERE id = ?').get(variant.product_id);
             throw new Error(`Stock insuffisant pour ${product ? product.name : 'un article'} (${variant.color}/${variant.size})`);
           }
-          const product = db.prepare('SELECT name, sale_price FROM products WHERE id = ?').get(variant.product_id);
+          const product = db.prepare('SELECT name, sale_price, cost_price FROM products WHERE id = ?').get(variant.product_id);
           const unitPrice = it.unit_price !== undefined ? Number(it.unit_price) : (variant.price_override ?? product.sale_price);
           const subtotal = unitPrice * qty;
           total += subtotal;
@@ -47,6 +47,7 @@ module.exports = function buildSalesRouter() {
             size: variant.size,
             quantity: qty,
             unit_price: unitPrice,
+            unit_cost: product.cost_price,
             subtotal
           });
         }
@@ -73,8 +74,8 @@ module.exports = function buildSalesRouter() {
 
         const saleId = saleInfo.lastInsertRowid;
         const insertItem = db.prepare(
-          `INSERT INTO sale_items (sale_id, variant_id, product_name, color, size, quantity, unit_price, subtotal)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+          `INSERT INTO sale_items (sale_id, variant_id, product_name, color, size, quantity, unit_price, unit_cost, subtotal)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
         );
         const insertMovement = db.prepare(
           `INSERT INTO stock_movements (variant_id, type, quantity, note, source) VALUES (?, 'vente', ?, ?, 'pc')`
@@ -82,7 +83,7 @@ module.exports = function buildSalesRouter() {
         const updateStock = db.prepare('UPDATE variants SET quantity = quantity - ? WHERE id = ?');
 
         for (const pi of preparedItems) {
-          insertItem.run(saleId, pi.variant_id, pi.product_name, pi.color, pi.size, pi.quantity, pi.unit_price, pi.subtotal);
+          insertItem.run(saleId, pi.variant_id, pi.product_name, pi.color, pi.size, pi.quantity, pi.unit_price, pi.unit_cost, pi.subtotal);
           updateStock.run(pi.quantity, pi.variant_id);
           insertMovement.run(pi.variant_id, -pi.quantity, `Vente ${ticketNumber}`);
         }
@@ -99,7 +100,7 @@ module.exports = function buildSalesRouter() {
 
   router.get('/', (req, res) => {
     const db = getDb();
-    const { from, to, status } = req.query;
+    const { from, to, status, payment_method, q } = req.query;
     let sql = 'SELECT * FROM sales WHERE 1=1';
     const params = [];
     if (from) {
@@ -114,8 +115,19 @@ module.exports = function buildSalesRouter() {
       sql += ' AND status = ?';
       params.push(status);
     }
+    if (payment_method) {
+      sql += ' AND payment_method = ?';
+      params.push(payment_method);
+    }
+    if (q) {
+      sql += ' AND (ticket_number LIKE ? OR seller LIKE ?)';
+      params.push(`%${q}%`, `%${q}%`);
+    }
     sql += ' ORDER BY created_at DESC';
-    res.json(db.prepare(sql).all(...params));
+    const rows = db.prepare(sql).all(...params);
+    const itemCount = db.prepare('SELECT COUNT(*) AS n FROM sale_items WHERE sale_id = ?');
+    rows.forEach((r) => { r.nb_articles = itemCount.get(r.id).n; });
+    res.json(rows);
   });
 
   router.get('/:id', (req, res) => {

@@ -21,7 +21,8 @@
     "dayjs": "^1.11.13",
     "express": "^4.21.0",
     "multer": "^2.2.0",
-    "nanoid": "^3.3.7"
+    "nanoid": "^3.3.7",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^6.1.0",
@@ -59,7 +60,12 @@
     },
     "win": {
       "target": [
-        { "target": "nsis", "arch": ["x64"] }
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
       ],
       "icon": "public/icons/icon.ico"
     },

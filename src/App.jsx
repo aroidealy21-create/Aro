@@ -8,6 +8,7 @@ import Inventory from './pages/Inventory.jsx';
 import ProductForm from './pages/ProductForm.jsx';
 import Reception from './pages/Reception.jsx';
 import POS from './pages/POS.jsx';
+import SalesHistory from './pages/SalesHistory.jsx';
 import Reports from './pages/Reports.jsx';
 import Settings from './pages/Settings.jsx';
 
@@ -16,6 +17,7 @@ const NAV_ITEMS = [
   { to: '/vente', label: 'Caisse (Vente)', icon: '\u{1F6D2}' },
   { to: '/inventaire', label: 'Inventaire', icon: '\u{1F455}' },
   { to: '/reception', label: 'Reception stock', icon: '\u{1F4E6}' },
+  { to: '/ventes', label: 'Historique ventes', icon: '\u{1F9FE}' },
   { to: '/rapports', label: 'Rapports', icon: '\u{1F4CA}' },
   { to: '/parametres', label: 'Parametres', icon: '\u{2699}\u{FE0F}' }
 ];
@@ -70,6 +72,7 @@ function Shell() {
           <Route path="/inventaire/nouveau" element={<ProductForm />} />
           <Route path="/inventaire/:id" element={<ProductForm />} />
           <Route path="/reception" element={<Reception />} />
+          <Route path="/ventes" element={<SalesHistory />} />
           <Route path="/rapports" element={<Reports />} />
           <Route path="/parametres" element={<Settings />} />
         </Routes>

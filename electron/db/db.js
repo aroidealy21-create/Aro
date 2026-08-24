@@ -1,6 +1,7 @@
 const path = require('path');
 const fs = require('fs');
 const Database = require('better-sqlite3');
+const { runMigrations } = require('./migrations');
 
 let db = null;
 
@@ -24,6 +25,7 @@ function initDb(userDataDir) {
   if (!schemaPath) throw new Error('schema.sql introuvable');
   const schema = fs.readFileSync(schemaPath, 'utf-8');
   db.exec(schema);
+  runMigrations(db);
 
   return { db, dbPath, photosDir };
 }
