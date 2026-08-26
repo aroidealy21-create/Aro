@@ -4,6 +4,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGri
 import { api, photoUrl, formatMoney } from '../lib/api';
 import { useSettings } from '../lib/settingsContext.jsx';
 import { useToast } from '../lib/toast.jsx';
+import { LockedCard } from '../components/Locked.jsx';
 
 export default function Dashboard() {
   const [summary, setSummary] = useState(null);
@@ -36,36 +37,46 @@ export default function Dashboard() {
       ) : (
         <>
           <div className="grid grid-5">
-            <div className="stat-card">
-              <div className="label">CA aujourd'hui</div>
-              <div className="value">{formatMoney(summary.today.ca, settings.currency)}</div>
-              <div className="subtitle">{summary.today.nb_ventes} vente(s)</div>
-              {delta !== null && (
-                <div className={`delta ${delta >= 0 ? 'up' : 'down'}`}>
-                  {delta >= 0 ? '▲' : '▼'} {Math.abs(delta)}% vs hier
-                </div>
-              )}
-            </div>
-            <div className="stat-card accent">
-              <div className="label">Benefice aujourd'hui</div>
-              <div className="value">{formatMoney(summary.today.benefice || 0, settings.currency)}</div>
-              <div className="subtitle">CA - cout des articles</div>
-            </div>
-            <div className="stat-card">
-              <div className="label">CA du mois</div>
-              <div className="value">{formatMoney(summary.month.ca, settings.currency)}</div>
-              <div className="subtitle">Benefice {formatMoney(summary.month.benefice || 0, settings.currency)}</div>
-            </div>
-            <div className="stat-card">
-              <div className="label">CA de l'annee</div>
-              <div className="value">{formatMoney(summary.year.ca, settings.currency)}</div>
-              <div className="subtitle">Benefice {formatMoney(summary.year.benefice || 0, settings.currency)}</div>
-            </div>
-            <div className="stat-card">
-              <div className="label">Valeur du stock</div>
-              <div className="value">{formatMoney(summary.stockValue.value_sale, settings.currency)}</div>
-              <div className="subtitle">{summary.stockValue.total_pieces} piece(s)</div>
-            </div>
+            <LockedCard>
+              <div className="stat-card">
+                <div className="label">CA aujourd'hui</div>
+                <div className="value">{formatMoney(summary.today.ca, settings.currency)}</div>
+                <div className="subtitle">{summary.today.nb_ventes} vente(s)</div>
+                {delta !== null && (
+                  <div className={`delta ${delta >= 0 ? 'up' : 'down'}`}>
+                    {delta >= 0 ? '▲' : '▼'} {Math.abs(delta)}% vs hier
+                  </div>
+                )}
+              </div>
+            </LockedCard>
+            <LockedCard>
+              <div className="stat-card accent">
+                <div className="label">Benefice aujourd'hui</div>
+                <div className="value">{formatMoney(summary.today.benefice || 0, settings.currency)}</div>
+                <div className="subtitle">CA - cout des articles</div>
+              </div>
+            </LockedCard>
+            <LockedCard>
+              <div className="stat-card">
+                <div className="label">CA du mois</div>
+                <div className="value">{formatMoney(summary.month.ca, settings.currency)}</div>
+                <div className="subtitle">Benefice {formatMoney(summary.month.benefice || 0, settings.currency)}</div>
+              </div>
+            </LockedCard>
+            <LockedCard>
+              <div className="stat-card">
+                <div className="label">CA de l'annee</div>
+                <div className="value">{formatMoney(summary.year.ca, settings.currency)}</div>
+                <div className="subtitle">Benefice {formatMoney(summary.year.benefice || 0, settings.currency)}</div>
+              </div>
+            </LockedCard>
+            <LockedCard>
+              <div className="stat-card">
+                <div className="label">Valeur du stock</div>
+                <div className="value">{formatMoney(summary.stockValue.value_sale, settings.currency)}</div>
+                <div className="subtitle">{summary.stockValue.total_pieces} piece(s)</div>
+              </div>
+            </LockedCard>
           </div>
 
           <div className="grid grid-2" style={{ marginTop: 18, alignItems: 'start' }}>

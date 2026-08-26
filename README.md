@@ -7,14 +7,18 @@ internet n'est necessaire au quotidien.
 
 ## Fonctionnalites
 
-- **Inventaire** : articles avec photo, categorie, couleurs, tailles (variantes), prix
-  d'achat/vente, seuils d'alerte de stock bas.
+- **Inventaire** : articles avec photo (compressee/redimensionnee automatiquement, y compris
+  celles deja importees, pour rester rapide meme avec beaucoup d'articles), categorie,
+  couleurs, tailles (variantes), prix d'achat/vente, seuils d'alerte de stock bas. Articles
+  regroupes par categorie pour une navigation plus rapide.
 - **Reception de stock** : mise a jour rapide des quantites quand vous recevez de nouveaux
   articles. Cette page fonctionne aussi depuis une **tablette** connectee au Wi-Fi de la
   boutique (aucune installation sur la tablette, juste un navigateur).
-- **Caisse (POS)** : enregistrement des ventes en temps reel, panier, remise (montant ou
-  pourcentage), plusieurs moyens de paiement (especes, Mvola, Orange Money, Airtel Money,
-  carte, **achat en ligne**), rendu de monnaie, ticket imprimable.
+- **Caisse (POS)** : articles regroupes par categorie (avec en-tetes qui restent visibles au
+  defilement) pour retrouver un article facilement parmi des centaines, enregistrement des
+  ventes en temps reel, panier, remise (montant ou pourcentage), plusieurs moyens de paiement
+  (especes, Mvola, Orange Money, Airtel Money, carte, **achat en ligne**), rendu de monnaie,
+  ticket imprimable (format 80mm).
 - **Historique des ventes** : recherche et filtre par date / moyen de paiement, detail d'une
   vente, annulation (remet le stock a jour), reimpression de ticket.
 - **Tableau de bord & Rapports** : chiffre d'affaires **et benefices** (jour / semaine / mois /
@@ -25,6 +29,9 @@ internet n'est necessaire au quotidien.
   (Resume, Ventes, Detail articles, Produits, CA par jour, Paiements), directement
   exploitable sans reformatage.
 - **Alertes de stock bas** et valeur totale du stock.
+- **Code PIN gerant** (optionnel, dans Parametres) : protege l'acces a Rapports, aux
+  cartes CA/benefice/valeur du stock du tableau de bord, et au prix d'achat des articles,
+  pour que les employes n'y aient pas acces.
 - **Sauvegarde** de la base de donnees en un clic.
 - 100% hors-ligne, toutes les donnees restent sur votre ordinateur.
 

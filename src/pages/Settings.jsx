@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { api } from '../lib/api';
 import { useToast } from '../lib/toast.jsx';
 import { useSettings } from '../lib/settingsContext.jsx';
+import { LockedField } from '../components/Locked.jsx';
 
 export default function Settings() {
   const { settings, refresh } = useSettings();
@@ -90,6 +91,26 @@ export default function Settings() {
               Message en bas du ticket de caisse
               <input className="input" value={form.receipt_footer || ''} onChange={(e) => update('receipt_footer', e.target.value)} />
             </label>
+            <LockedField label="Code PIN gerant (4 chiffres)">
+              <label className="field">
+                Code PIN gerant (4 chiffres)
+                <input
+                  className="input"
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]{4}"
+                  maxLength={4}
+                  placeholder="Ex: 2468"
+                  value={form.manager_pin || ''}
+                  onChange={(e) => update('manager_pin', e.target.value.replace(/[^0-9]/g, '').slice(0, 4))}
+                />
+              </label>
+            </LockedField>
+            <p style={{ fontSize: 12, color: 'var(--ink-soft)', marginTop: -8, marginBottom: 14 }}>
+              Une fois defini, ce code sera demande pour voir Rapports, le CA/benefice/valeur du stock du tableau
+              de bord, et le prix d'achat des articles. Laissez ce champ vide puis enregistrez pour desactiver
+              la protection.
+            </p>
             <button className="btn wide" type="submit" disabled={saving}>{saving ? 'Enregistrement...' : 'Enregistrer'}</button>
           </form>
         </div>

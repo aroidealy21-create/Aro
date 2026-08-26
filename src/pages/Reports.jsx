@@ -6,6 +6,7 @@ import { useSettings } from '../lib/settingsContext.jsx';
 import { useToast } from '../lib/toast.jsx';
 import { paymentLabel } from '../lib/payments';
 import { buildAndDownloadExcel } from '../lib/excelExport';
+import { LockedPage } from '../components/Locked.jsx';
 
 const PERIODS = [
   { key: 'day', label: 'Jour' },
@@ -83,6 +84,7 @@ export default function Reports() {
   const boutique = canal.find((c) => c.canal === 'boutique') || { nb_ventes: 0, ca: 0 };
 
   return (
+    <LockedPage title="Rapports reserves au gerant">
     <div>
       <div className="page-header">
         <div>
@@ -283,6 +285,7 @@ export default function Reports() {
         </>
       )}
     </div>
+    </LockedPage>
   );
 }
 

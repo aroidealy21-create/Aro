@@ -84,3 +84,4 @@ INSERT OR IGNORE INTO settings (key, value) VALUES ('shop_phone', '');
 INSERT OR IGNORE INTO settings (key, value) VALUES ('currency', 'Ar');
 INSERT OR IGNORE INTO settings (key, value) VALUES ('low_stock_threshold', '3');
 INSERT OR IGNORE INTO settings (key, value) VALUES ('receipt_footer', 'Merci de votre visite !');
+INSERT OR IGNORE INTO settings (key, value) VALUES ('manager_pin', '');

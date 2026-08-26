@@ -105,6 +105,27 @@ export default function POS() {
     setAmountReceived('');
   }
 
+  const showGrouped = !category && !q;
+  const groupedProducts = useMemo(() => {
+    if (!showGrouped) return null;
+    const groups = new Map();
+    products.forEach((p) => {
+      const key = p.category || 'Sans categorie';
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key).push(p);
+    });
+    return [...groups.entries()].sort((a, b) => {
+      if (a[0] === 'Sans categorie') return 1;
+      if (b[0] === 'Sans categorie') return -1;
+      return a[0].localeCompare(b[0], 'fr');
+    });
+  }, [products, showGrouped]);
+
+  function scrollToCategory(cat) {
+    const el = document.getElementById(`cat-${cat}`);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
   const total = useMemo(() => cart.reduce((s, it) => s + it.unit_price * it.quantity, 0), [cart]);
   const discountAmount = discountType === 'percent'
     ? Math.round((total * (Number(discount) || 0)) / 100)
@@ -152,37 +173,62 @@ export default function POS() {
 
       <div className="pos-layout">
         <div className="pos-catalog">
-          <div style={{ display: 'flex', gap: 10, marginBottom: 12, flexWrap: 'wrap' }}>
-            <div className="searchbar" style={{ flex: 1, minWidth: 200 }}>
-              <span>&#128269;</span>
-              <input placeholder="Rechercher un article..." value={q} onChange={(e) => setQ(e.target.value)} />
-            </div>
-            <select className="input" style={{ width: 180 }} value={category} onChange={(e) => setCategory(e.target.value)}>
-              <option value="">Toutes categories</option>
-              {categories.map((c) => <option key={c} value={c}>{c}</option>)}
-            </select>
+          <div className="searchbar" style={{ marginBottom: 10 }}>
+            <span>&#128269;</span>
+            <input placeholder="Rechercher un article..." value={q} onChange={(e) => setQ(e.target.value)} />
           </div>
 
-          <div className="pos-grid">
-            {products.map((p) => {
-              const totalQty = p.variants.reduce((s, v) => s + v.quantity, 0);
-              return (
-                <div key={p.id} className="pos-product-card" onClick={() => openProduct(p)}>
-                  {p.photo ? (
-                    <img className="product-photo" src={photoUrl(p.photo)} alt={p.name} />
-                  ) : (
-                    <div className="product-photo placeholder">&#128092;</div>
-                  )}
-                  <div className="name">{p.name}</div>
-                  <div className="price">{formatMoney(p.sale_price, settings.currency)}</div>
-                  <div className="stock">{totalQty} en stock &middot; {p.variants.length} var.</div>
-                </div>
-              );
-            })}
-            {products.length === 0 && (
-              <div className="empty-state" style={{ gridColumn: '1/-1' }}>Aucun article disponible</div>
-            )}
+          <div className="category-chips">
+            <button
+              type="button"
+              className={`tag-pill ${!category ? 'active' : ''}`}
+              onClick={() => setCategory('')}
+            >
+              Toutes categories
+            </button>
+            {categories.map((c) => (
+              <button
+                type="button"
+                key={c}
+                className={`tag-pill ${category === c ? 'active' : ''}`}
+                onClick={() => {
+                  if (showGrouped) { setCategory(''); setTimeout(() => scrollToCategory(c), 50); }
+                  else setCategory(category === c ? '' : c);
+                }}
+              >
+                {c}
+              </button>
+            ))}
           </div>
+
+          {showGrouped ? (
+            groupedProducts.length === 0 ? (
+              <div className="empty-state">Aucun article disponible</div>
+            ) : (
+              groupedProducts.map(([cat, items]) => (
+                <div key={cat} id={`cat-${cat}`} className="pos-category-section">
+                  <div className="pos-category-heading">
+                    <h4>{cat}</h4>
+                    <span className="count">{items.length} article{items.length > 1 ? 's' : ''}</span>
+                  </div>
+                  <div className="pos-grid">
+                    {items.map((p) => (
+                      <ProductCard key={p.id} product={p} currency={settings.currency} onClick={() => openProduct(p)} />
+                    ))}
+                  </div>
+                </div>
+              ))
+            )
+          ) : (
+            <div className="pos-grid">
+              {products.map((p) => (
+                <ProductCard key={p.id} product={p} currency={settings.currency} onClick={() => openProduct(p)} />
+              ))}
+              {products.length === 0 && (
+                <div className="empty-state" style={{ gridColumn: '1/-1' }}>Aucun article ne correspond</div>
+              )}
+            </div>
+          )}
         </div>
 
         <div className="cart-panel">
@@ -331,6 +377,22 @@ export default function POS() {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function ProductCard({ product, currency, onClick }) {
+  const totalQty = product.variants.reduce((s, v) => s + v.quantity, 0);
+  return (
+    <div className="pos-product-card" onClick={onClick}>
+      {product.photo ? (
+        <img className="product-photo" src={photoUrl(product.photo)} alt={product.name} loading="lazy" />
+      ) : (
+        <div className="product-photo placeholder">&#128092;</div>
+      )}
+      <div className="name">{product.name}</div>
+      <div className="price">{formatMoney(product.sale_price, currency)}</div>
+      <div className="stock">{totalQty} en stock &middot; {product.variants.length} var.</div>
     </div>
   );
 }

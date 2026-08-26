@@ -3,6 +3,7 @@ import { useNavigate, useParams, Link } from 'react-router-dom';
 import { api, photoUrl } from '../lib/api';
 import { useToast } from '../lib/toast.jsx';
 import { colorSwatch, KNOWN_COLORS, COMMON_SIZES } from '../lib/colors';
+import { LockedField } from '../components/Locked.jsx';
 
 const emptyVariant = () => ({ color: '', size: '', quantity: 0, alert_threshold: 3 });
 
@@ -111,7 +112,10 @@ export default function ProductForm() {
 
   async function handleUpdateVariantExisting(v) {
     try {
-      const updated = await api.put(`/products/variants/${v.id}`, v);
+      // On n'envoie que les champs reellement edites par ce tableau : ne jamais renvoyer
+      // price_override ici, sous peine d'ecraser le prix particulier de la variante.
+      const { color, size, alert_threshold } = v;
+      const updated = await api.put(`/products/variants/${v.id}`, { color, size, alert_threshold });
       setVariants((vs) => vs.map((x) => (x.id === v.id ? updated : x)));
       toast.success('Variante mise a jour');
     } catch (err) {
@@ -159,10 +163,12 @@ export default function ProductForm() {
               <textarea className="input" rows={3} value={description} onChange={(e) => setDescription(e.target.value)} />
             </label>
             <div className="grid grid-2">
-              <label className="field">
-                Prix d'achat (cout)
-                <input className="input" type="number" min="0" step="any" value={costPrice} onChange={(e) => setCostPrice(e.target.value)} />
-              </label>
+              <LockedField label="Prix d'achat (cout)">
+                <label className="field">
+                  Prix d'achat (cout)
+                  <input className="input" type="number" min="0" step="any" value={costPrice} onChange={(e) => setCostPrice(e.target.value)} />
+                </label>
+              </LockedField>
               <label className="field">
                 Prix de vente *
                 <input className="input" type="number" min="0" step="any" value={salePrice} onChange={(e) => setSalePrice(e.target.value)} required />

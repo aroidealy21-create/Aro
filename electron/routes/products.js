@@ -4,6 +4,7 @@ const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
 const { getDb } = require('../db/db');
+const { optimizeBuffer } = require('../lib/imageOptim');
 
 function makeSku(productId, color, size) {
   const clean = (s) => (s || '').toString().trim().toUpperCase().replace(/[^A-Z0-9]+/g, '').slice(0, 6);
@@ -14,21 +15,31 @@ function makeSku(productId, color, size) {
 module.exports = function buildProductsRouter(photosDir) {
   const router = express.Router();
 
-  const storage = multer.diskStorage({
-    destination: (req, file, cb) => cb(null, photosDir),
-    filename: (req, file, cb) => {
-      const ext = path.extname(file.originalname) || '.jpg';
-      cb(null, `${Date.now()}-${crypto.randomBytes(4).toString('hex')}${ext}`);
-    }
-  });
+  // La photo est d'abord recue en memoire, puis compressee/redimensionnee avant d'etre
+  // ecrite sur le disque : les photos prises depuis la tablette (plusieurs Mo) ne doivent
+  // jamais etre stockees telles quelles, sinon Inventaire et Caisse deviennent tres lents
+  // des que le nombre d'articles augmente.
   const upload = multer({
-    storage,
-    limits: { fileSize: 8 * 1024 * 1024 },
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 15 * 1024 * 1024 },
     fileFilter: (req, file, cb) => {
       if (/^image\/(jpeg|png|webp|gif)$/.test(file.mimetype)) cb(null, true);
       else cb(new Error('Format image non supporte'));
     }
   });
+
+  async function optimizeUploadedPhoto(req, res, next) {
+    if (!req.file) return next();
+    try {
+      const optimized = await optimizeBuffer(req.file.buffer);
+      const filename = `${Date.now()}-${crypto.randomBytes(4).toString('hex')}.jpg`;
+      fs.writeFileSync(path.join(photosDir, filename), optimized);
+      req.file.filename = filename;
+      next();
+    } catch (err) {
+      next(new Error("Impossible de traiter la photo : " + err.message));
+    }
+  }
 
   function attachVariants(product) {
     const db = getDb();
@@ -74,7 +85,7 @@ module.exports = function buildProductsRouter(photosDir) {
     res.json(attachVariants(product));
   });
 
-  router.post('/', upload.single('photo'), (req, res) => {
+  router.post('/', upload.single('photo'), optimizeUploadedPhoto, (req, res) => {
     const db = getDb();
     const { name, category, description, cost_price, sale_price } = req.body;
     if (!name || !name.trim()) return res.status(400).json({ error: 'Le nom est obligatoire' });
@@ -128,7 +139,7 @@ module.exports = function buildProductsRouter(photosDir) {
     res.status(201).json(attachVariants(product));
   });
 
-  router.put('/:id', upload.single('photo'), (req, res) => {
+  router.put('/:id', upload.single('photo'), optimizeUploadedPhoto, (req, res) => {
     const db = getDb();
     const existing = db.prepare('SELECT * FROM products WHERE id = ?').get(req.params.id);
     if (!existing) return res.status(404).json({ error: 'Article introuvable' });
@@ -198,14 +209,21 @@ module.exports = function buildProductsRouter(photosDir) {
     const db = getDb();
     const existing = db.prepare('SELECT * FROM variants WHERE id = ?').get(req.params.variantId);
     if (!existing) return res.status(404).json({ error: 'Variante introuvable' });
-    const { color, size, alert_threshold, price_override } = req.body;
+    const { color, size, alert_threshold } = req.body;
+    // price_override n'est modifie que si la cle est explicitement envoyee : une valeur
+    // absente ou nulle ne doit jamais ecraser le prix (sinon la variante retombe a 0 Ar).
+    const hasPriceOverride = Object.prototype.hasOwnProperty.call(req.body, 'price_override');
+    const rawPriceOverride = req.body.price_override;
+    const nextPriceOverride = hasPriceOverride
+      ? (rawPriceOverride === '' || rawPriceOverride === null ? null : Number(rawPriceOverride))
+      : existing.price_override;
     db.prepare(
       `UPDATE variants SET color = ?, size = ?, alert_threshold = ?, price_override = ? WHERE id = ?`
     ).run(
       color ?? existing.color,
       size ?? existing.size,
       alert_threshold !== undefined ? Number(alert_threshold) : existing.alert_threshold,
-      price_override !== undefined && price_override !== '' ? Number(price_override) : null,
+      nextPriceOverride,
       req.params.variantId
     );
     res.json(db.prepare('SELECT * FROM variants WHERE id = ?').get(req.params.variantId));

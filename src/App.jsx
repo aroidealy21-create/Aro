@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { NavLink, Route, Routes } from 'react-router-dom';
 import { ToastProvider } from './lib/toast.jsx';
 import { SettingsProvider, useSettings } from './lib/settingsContext.jsx';
+import { PinProvider, usePin } from './lib/pinContext.jsx';
 
 import Dashboard from './pages/Dashboard.jsx';
 import Inventory from './pages/Inventory.jsx';
@@ -24,6 +25,7 @@ const NAV_ITEMS = [
 
 function Sidebar({ open, onNavigate }) {
   const { settings } = useSettings();
+  const { hasPin, unlocked, lock, requestUnlock } = usePin();
   return (
     <aside className={`sidebar ${open ? 'open' : ''}`}>
       <div className="brand">
@@ -47,6 +49,16 @@ function Sidebar({ open, onNavigate }) {
           </NavLink>
         ))}
       </nav>
+      {hasPin && (
+        <button
+          type="button"
+          className={`lock-status-btn ${unlocked ? 'is-unlocked' : ''}`}
+          onClick={unlocked ? lock : requestUnlock}
+        >
+          <span>{unlocked ? '\u{1F513}' : '\u{1F512}'}</span>
+          {unlocked ? 'Verrouiller les stats' : 'Deverrouiller les stats'}
+        </button>
+      )}
       <div className="sidebar-footer">100% hors-ligne &middot; mikata.mg</div>
     </aside>
   );
@@ -84,9 +96,11 @@ function Shell() {
 export default function App() {
   return (
     <SettingsProvider>
-      <ToastProvider>
-        <Shell />
-      </ToastProvider>
+      <PinProvider>
+        <ToastProvider>
+          <Shell />
+        </ToastProvider>
+      </PinProvider>
     </SettingsProvider>
   );
 }

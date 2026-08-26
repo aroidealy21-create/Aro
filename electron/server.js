@@ -2,6 +2,7 @@ const express = require('express');
 const path = require('path');
 const os = require('os');
 const { initDb } = require('./db/db');
+const { optimizeExistingPhotos } = require('./lib/imageOptim');
 
 const buildProductsRouter = require('./routes/products');
 const buildStockRouter = require('./routes/stock');
@@ -51,6 +52,17 @@ function createServer(userDataDir, staticDir) {
       res.sendFile(path.join(staticDir, 'index.html'));
     });
   }
+
+  // Toute erreur (y compris celles remontees par multer ou le traitement des photos) doit
+  // repartir en JSON, jamais en page d'erreur HTML, sinon l'interface affiche un message
+  // generique inexploitable.
+  app.use((err, req, res, next) => {
+    res.status(400).json({ error: err.message || 'Erreur inattendue' });
+  });
+
+  // Allege en arriere-plan les photos deja presentes (importees avant cette mise a jour),
+  // sans jamais bloquer le demarrage de l'application.
+  optimizeExistingPhotos(photosDir).catch(() => {});
 
   return new Promise((resolve, reject) => {
     const server = app.listen(PORT, '0.0.0.0', () => {
